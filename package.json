@@ -1,0 +1,38 @@
+{
+  "name": "hookhound",
+  "version": "0.1.0",
+  "description": "Agent plugin release gate: sniff broken hooks, manifests, skills, and package payloads before users do.",
+  "type": "module",
+  "bin": {
+    "hookhound": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "check": "npm run build && npm test"
+  },
+  "keywords": [
+    "agent",
+    "plugin",
+    "claude",
+    "codex",
+    "zcode",
+    "hooks",
+    "mcp",
+    "ci"
+  ],
+  "author": "YoungsPlace",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
