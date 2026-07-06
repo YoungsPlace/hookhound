@@ -1,28 +1,35 @@
 #!/usr/bin/env node
 import { scan } from "./core/scanner.js"
-import { renderTextReport } from "./core/report.js"
+import { renderGithubReport, renderTextReport } from "./core/report.js"
 
 interface CliArgs {
   root: string
   json: boolean
   strict: boolean
+  format: "text" | "github"
 }
 
 function parseArgs(argv: string[]): CliArgs {
-  const args: CliArgs = { root: process.cwd(), json: false, strict: false }
+  const args: CliArgs = { root: process.cwd(), json: false, strict: false, format: "text" }
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index]
     if (arg === "--json") {
       args.json = true
     } else if (arg === "--strict") {
       args.strict = true
+    } else if (arg === "--format") {
+      const value = argv[index + 1]
+      if (!value) throw new Error("--format requires a value")
+      if (value !== "text" && value !== "github") throw new Error(`Unsupported format: ${value}`)
+      args.format = value
+      index += 1
     } else if (arg === "--root") {
       const value = argv[index + 1]
       if (!value) throw new Error("--root requires a path")
       args.root = value
       index += 1
     } else if (arg === "--help" || arg === "-h") {
-      console.log(`HookHound — sniff broken agent plugins before users do.\n\nUsage:\n  hookhound sniff [--root <path>] [--strict] [--json]\n\nCommands:\n  sniff    Detect plugin surfaces and run release-gate checks\n`)
+      console.log(`HookHound — sniff broken agent plugins before users do.\n\nUsage:\n  hookhound sniff [--root <path>] [--strict] [--json] [--format text|github]\n\nCommands:\n  sniff    Detect plugin surfaces and run release-gate checks\n`)
       process.exit(0)
     } else if (arg === "sniff") {
       continue
@@ -38,6 +45,8 @@ async function main(): Promise<void> {
   const summary = await scan(args)
   if (args.json) {
     console.log(JSON.stringify(summary, null, 2))
+  } else if (args.format === "github") {
+    console.log(renderGithubReport(summary))
   } else {
     console.log(renderTextReport(summary))
   }

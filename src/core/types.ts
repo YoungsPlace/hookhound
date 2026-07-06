@@ -8,6 +8,8 @@ export interface Finding {
   file?: string
   evidence?: string
   hint?: string
+  line?: number
+  column?: number
 }
 
 export interface Detection {
