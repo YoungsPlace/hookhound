@@ -1,6 +1,6 @@
 {
   "name": "hookhound",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Agent plugin release gate: sniff broken hooks, manifests, skills, and package payloads before users do.",
   "type": "module",
   "bin": {
