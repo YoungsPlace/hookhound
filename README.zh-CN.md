@@ -134,6 +134,7 @@ node dist/action.js
 ### Hook / skill
 
 - 支持 `${PLUGIN_ROOT}`、`${ZCODE_PLUGIN_ROOT}`、`${CLAUDE_PLUGIN_ROOT}`、`${CODEX_PLUGIN_ROOT}`、`${GJC_PLUGIN_ROOT}`、`${OMO_PLUGIN_ROOT}`
+- 解释器 / wrapper hook command，例如 `python3 "${PLUGIN_ROOT}/scripts/check.py"` 和 `/usr/bin/env node ./hooks/check.js`
 - 缺失 hook command target
 - 缺失 generated `dist/` hook artifact
 - hook target 逃出插件根目录
@@ -153,20 +154,20 @@ node dist/action.js
 hookhound sniff --root .                 # 人类可读文本报告
 hookhound sniff --root . --json          # 机器可读 ScanSummary
 hookhound sniff --root . --format github # GitHub annotations + markdown summary
+hookhound sniff --root . --format sarif  # SARIF 2.1.0，供 code-scanning 工具使用
 ```
 
 ## 当前边界
 
-HookHound 目前**不提供**：
+HookHound 目前提供本地文本输出、机器可读 `ScanSummary` JSON、GitHub annotations/job summary，以及面向 code-scanning consumer 的 SARIF。它目前**不提供**：
 
-- SARIF 输出
 - hosted dashboard
 - telemetry 或 report upload
 - 跨生态的完整 marketplace schema 覆盖
 - 大型 adapter framework
 - npm 以外的 package-manager payload simulation
 
-这些功能会等真实 CI 使用反馈出现后再做。当前目标很简单：在本地和 GitHub CI 中抓住损坏的 agent plugin release。
+这些能力会等真实 CI 使用反馈出现后再做。当前目标很简单：不上传项目数据，在本地和 GitHub CI 中抓住损坏的 agent plugin release。
 
 ## Dogfooding
 

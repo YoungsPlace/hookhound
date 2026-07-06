@@ -6,6 +6,20 @@ const MARKS: Record<Finding["level"], string> = {
   info: "•",
 }
 
+type SarifRegion = {
+  startLine?: number
+  startColumn?: number
+}
+
+type SarifLocation = {
+  physicalLocation: {
+    artifactLocation: {
+      uri: string
+    }
+    region?: SarifRegion
+  }
+}
+
 function renderDetection(detection: Detection): string {
   return `✓ ${detection.kind}: ${detection.file}`
 }
@@ -33,6 +47,27 @@ function renderAnnotationMessage(finding: Finding): string {
   if (finding.evidence) lines.push(`Evidence: ${finding.evidence}`)
   if (finding.hint) lines.push(`Hint: ${finding.hint}`)
   return lines.join("\n")
+}
+
+function renderSarifMessage(finding: Finding): string {
+  const lines = [finding.title, finding.message]
+  if (finding.evidence) lines.push(`Evidence: ${finding.evidence}`)
+  if (finding.hint) lines.push(`Hint: ${finding.hint}`)
+  return lines.join("\n")
+}
+
+function renderSarifLocation(finding: Finding): SarifLocation | undefined {
+  if (!finding.file) return undefined
+
+  const physicalLocation: SarifLocation["physicalLocation"] = {
+    artifactLocation: { uri: finding.file },
+  }
+  if (finding.line !== undefined || finding.column !== undefined) {
+    physicalLocation.region = {}
+    if (finding.line !== undefined) physicalLocation.region.startLine = finding.line
+    if (finding.column !== undefined) physicalLocation.region.startColumn = finding.column
+  }
+  return { physicalLocation }
 }
 
 function renderSummaryFinding(finding: Finding): string[] {
@@ -110,4 +145,52 @@ export function renderGithubReport(summary: ScanSummary): string {
   const annotations = renderGithubAnnotations(summary)
   const jobSummary = renderGithubJobSummary(summary)
   return annotations ? `${annotations}\n${jobSummary}` : jobSummary
+}
+
+export function renderSarifReport(summary: ScanSummary): string {
+  const rulesById = new Map<string, Finding>()
+  for (const finding of summary.findings) {
+    if (!rulesById.has(finding.id)) rulesById.set(finding.id, finding)
+  }
+
+  const results = summary.findings.map((finding) => {
+    const location = renderSarifLocation(finding)
+    return {
+      ruleId: finding.id,
+      level: finding.level === "info" ? "note" : finding.level,
+      message: {
+        text: renderSarifMessage(finding),
+      },
+      ...(location ? { locations: [location] } : {}),
+    }
+  })
+
+  return JSON.stringify(
+    {
+      version: "2.1.0",
+      $schema: "https://json.schemastore.org/sarif-2.1.0.json",
+      runs: [
+        {
+          tool: {
+            driver: {
+              name: "HookHound",
+              informationUri: "https://github.com/YoungsPlace/hookhound",
+              rules: Array.from(rulesById.values()).map((finding) => ({
+                id: finding.id,
+                shortDescription: {
+                  text: finding.title,
+                },
+                fullDescription: {
+                  text: finding.message,
+                },
+              })),
+            },
+          },
+          results,
+        },
+      ],
+    },
+    null,
+    2,
+  )
 }

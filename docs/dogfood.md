@@ -53,14 +53,14 @@ Findings:
 
 | Finding | Classification | Notes |
 | --- | --- | --- |
-| `missing-hook-target` for `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/*.py"` | False positive / parser gap | HookHound currently treats a full shell command string as a path. The target scripts do exist under `scripts/`, but command parsing resolves the whole string incorrectly under `hooks/python3 ...`. |
+| `missing-hook-target` for `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/*.py"` | Fixed on `main` after v0.1.1 / parser gap closed | HookHound now tokenizes interpreter/wrapper command strings and resolves the templated script argument instead of treating the whole shell command as a path. |
 | `referenced-agent-file-missing` for `agents/*.md` references | Likely UX gap / packaging gap | Matching files exist under `src/ouroboros/agents/*.md`, not root `agents/*.md`. HookHound cannot yet distinguish source-tree references that are copied into plugin payloads by a release process from genuinely missing packaged files. |
 
 UX notes:
 
-- The scan found real structural ambiguity but over-reported as hard errors.
-- Next scanner improvement should parse process `command` strings with shell-aware tokenization, then inspect templated path arguments rather than the whole command.
-- The referenced-agent check needs package-root awareness or an allowlist/config escape hatch for generated/synced payloads.
+- The scan found real structural ambiguity but originally over-reported shell interpreter commands as hard errors.
+- Parser follow-up is now covered by the `interpreter-command` fixture: `python3`, `node`, `/usr/bin/env`, quoted root-template paths, and flags resolve to real script targets.
+- The referenced-agent check still needs package-root awareness or an allowlist/config escape hatch for generated/synced payloads.
 
 ### `777genius/agent-teams-ai`
 
@@ -81,10 +81,10 @@ UX notes:
 
 ## Follow-up backlog
 
-1. **Shell command target parsing**
-   - Parse command strings like `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/session-start.py"`.
-   - Inspect templated path-like arguments after the interpreter token.
-   - Avoid resolving the full command string as a filesystem path.
+1. **Shell command target parsing** — fixed on `main` after v0.1.1
+   - Parses command strings like `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/session-start.py"`.
+   - Inspects templated path-like arguments after interpreter or `/usr/bin/env` wrapper tokens.
+   - Avoids resolving the full command string as a filesystem path.
 
 2. **Payload/source reference awareness**
    - Add configuration or adapter hints for generated plugin payloads where `src/**/agents/*.md` are copied into root `agents/*.md` during packaging.
@@ -101,4 +101,4 @@ UX notes:
 
 ## Summary
 
-HookHound is useful today on real plugin repos, but dogfooding exposed one important false-positive class: shell command strings with interpreters should not be treated as direct file paths. This should be a high-priority v0.2.x scanner improvement after the v0.1.1 documentation/release polish.
+HookHound is useful today on real plugin repos. Dogfooding exposed one important false-positive class — shell command strings with interpreters — and that gap is now covered on `main` by shell-aware command target parsing. The remaining highest-value UX gap is package/source reference awareness for generated agent payloads.

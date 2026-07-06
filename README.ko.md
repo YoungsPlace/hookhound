@@ -134,6 +134,7 @@ node dist/action.js
 ### Hook / skill
 
 - `${PLUGIN_ROOT}`, `${ZCODE_PLUGIN_ROOT}`, `${CLAUDE_PLUGIN_ROOT}`, `${CODEX_PLUGIN_ROOT}`, `${GJC_PLUGIN_ROOT}`, `${OMO_PLUGIN_ROOT}` 지원
+- `python3 "${PLUGIN_ROOT}/scripts/check.py"`, `/usr/bin/env node ./hooks/check.js` 같은 interpreter/wrapper hook command
 - hook command target 누락
 - generated `dist/` hook artifact 누락
 - plugin root 밖으로 나가는 hook target
@@ -153,20 +154,20 @@ node dist/action.js
 hookhound sniff --root .                 # 사람이 읽는 text report
 hookhound sniff --root . --json          # machine-readable ScanSummary
 hookhound sniff --root . --format github # GitHub annotations + markdown summary
+hookhound sniff --root . --format sarif  # code-scanning 도구용 SARIF 2.1.0
 ```
 
 ## 현재 범위
 
-HookHound는 현재 다음을 제공하지 않습니다.
+HookHound는 현재 local text output, machine-readable `ScanSummary` JSON, GitHub annotations/job summary, code-scanning consumer용 SARIF를 제공합니다. 아직 다음은 제공하지 않습니다.
 
-- SARIF output
 - hosted dashboard
 - telemetry 또는 report upload
 - 광범위한 marketplace schema coverage
 - broad adapter framework
 - npm 외 package-manager payload simulation
 
-이 기능들은 실제 CI 사용에서 수요가 확인된 뒤에 다룹니다. 지금 목표는 단순합니다. 로컬과 GitHub CI에서 깨진 agent plugin release를 먼저 잡는 것입니다.
+이 기능들은 실제 CI 사용에서 수요가 확인된 뒤에 다룹니다. 지금 목표는 단순합니다. 프로젝트 데이터를 업로드하지 않고 로컬과 GitHub CI에서 깨진 agent plugin release를 먼저 잡는 것입니다.
 
 ## Dogfooding
 

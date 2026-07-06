@@ -65,20 +65,21 @@ Longer launch post:
 
 ## Post-release launch sequence
 
-1. **Now:** Share a short launch thread with the airport-beagle hook, the concrete broken-release pain, and the one-command trial.
-2. **Next dogfood artifact:** Create a tiny failing PR or terminal recording that shows HookHound catching `missing-generated-hook-artifact` and GitHub annotations.
-3. **Trust move:** Open a public issue for the `ouroboros` shell-command parsing false positive, then link the dogfood report so users see the roadmap is evidence-driven.
+1. **Now:** Share a launch thread with the airport-beagle hook, the concrete broken-release pain, dogfood proof, and the one-command trial.
+2. **Next dogfood artifact:** Create a tiny failing PR or terminal recording that shows HookHound catching `missing-generated-hook-artifact`, GitHub annotations, and SARIF output.
+3. **Trust move:** Note that the `ouroboros` shell-command false positive found during dogfood is already fixed on `main`, while the source/generated-agent reference gap remains visible in the dogfood report.
 4. **Distribution:** Post to GitHub, npm package notes, X/Threads, Korean dev communities, and agent-tooling Discord/Slack communities with the same one-command CTA.
-5. **Follow-up metric:** Track npm downloads, GitHub stars, dogfood false positives, and how many users add the GitHub Action.
+5. **Follow-up metric:** Track npm downloads, GitHub stars, dogfood false positives, SARIF/code-scanning interest, and how many users add the GitHub Action.
 
 ## Korean launch thread draft
 
-1. Agent plugin도 이제 “그냥 스크립트 몇 개”가 아니라 릴리즈되는 소프트웨어입니다. 그런데 hook script 빠지고, `dist/` 안 실리고, manifest가 drift 나면 유저가 먼저 밟습니다.
+1. Agent plugin도 이제 “스크립트 몇 개”가 아니라 릴리즈되는 소프트웨어입니다. 그런데 hook script 빠지고, `dist/` 안 실리고, manifest가 drift 나면 유저가 먼저 밟습니다.
 2. 그래서 HookHound를 만들었습니다. 릴리즈 전에 Hookie라는 공항 보안견이 plugin 가방을 sniff해서 깨진 hook, 빠진 manifest, npm payload 실수를 잡습니다.
-3. 한 줄이면 됩니다: `npm exec --package hookhound@0.1.1 -- hookhound sniff --root .`
-4. GitHub Action으로 붙이면 PR마다 agent plugin 탑승 심사를 돌릴 수 있습니다: `uses: YoungsPlace/hookhound@v0.1.1`
-5. 이미 외부 repo 3개에 dogfood 했고, false positive도 숨기지 않고 문서화했습니다. 과장보다 증거가 더 오래갑니다.
-6. Agent plugin 릴리즈 전에 한 번 짖게 하세요. 유저가 깨진 플러그인을 만나기 전에 Hookie가 먼저 짖습니다.
+3. v0.1.1은 바로 실행됩니다: `npm exec --package hookhound@0.1.1 -- hookhound sniff --root .`
+4. `main`에는 dogfood에서 나온 `python3 "${PLUGIN_ROOT}/..."` 류 shell command false positive까지 고쳤고, SARIF 출력도 붙였습니다.
+5. GitHub Action으로 붙이면 PR마다 agent plugin 탑승 심사를 돌릴 수 있습니다: `uses: YoungsPlace/hookhound@v0.1.1`
+6. 외부 repo 3개에 dogfood 했고, false positive도 숨기지 않고 문서화했습니다. 과장보다 증거가 더 오래갑니다.
+7. Agent plugin 릴리즈 전에 한 번 짖게 하세요. 유저가 깨진 플러그인을 만나기 전에 Hookie가 먼저 짖습니다.
 
 ## Risk watch
 

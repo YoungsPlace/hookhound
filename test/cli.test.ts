@@ -77,4 +77,33 @@ describe("HookHound CLI JSON contract", () => {
     expect(result.stderr).toBe("")
     expect(ids).toContain("manifest-json-invalid")
   })
+
+  test("SARIF format emits parseable SARIF JSON", async () => {
+    const result = await execFileAsync(process.execPath, [CLI, "sniff", "--root", path.join(FIXTURES, "missing-dist"), "--format", "sarif"])
+    const sarif = JSON.parse(result.stdout)
+
+    expect(result.code).toBe(1)
+    expect(result.stderr).toBe("")
+    expect(sarif.version).toBe("2.1.0")
+    expect(sarif.runs[0].tool.driver.name).toBe("HookHound")
+    expect(sarif.runs[0].results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          ruleId: "missing-generated-hook-artifact",
+          level: "error",
+          message: expect.objectContaining({
+            text: expect.stringContaining("components/worker/dist/cli.js"),
+          }),
+        }),
+      ]),
+    )
+  })
+
+  test("unsupported formats fail before scanning", async () => {
+    const result = await execFileAsync(process.execPath, [CLI, "sniff", "--root", path.join(FIXTURES, "clean-plugin"), "--format", "xml"])
+
+    expect(result.code).toBe(1)
+    expect(result.stdout).toBe("")
+    expect(result.stderr).toContain("HookHound failed: Unsupported format: xml")
+  })
 })

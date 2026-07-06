@@ -1,5 +1,7 @@
 import path from "node:path"
+import { readFile } from "node:fs/promises"
 import { describe, expect, test } from "vitest"
+import { extractHookTargets } from "../src/core/hook-targets.js"
 import { scan } from "../src/core/scanner.js"
 
 const FIXTURES = path.join(import.meta.dirname, "fixtures")
@@ -43,6 +45,32 @@ describe("HookHound scanner", () => {
           evidence: expect.stringContaining("../shared/outside.js"),
         }),
       ]),
+    )
+  })
+
+  test("extracts interpreter command script targets without missing-target errors", async () => {
+    const fixtureRoot = path.join(FIXTURES, "interpreter-command")
+    const manifestFile = path.join(fixtureRoot, "hooks/hooks.json")
+    const manifest = JSON.parse(await readFile(manifestFile, "utf8"))
+    const targets = extractHookTargets(fixtureRoot, manifestFile, manifest)
+
+    const relativePaths = targets.map((target) => target.relativePath)
+    expect([...new Set(relativePaths)].sort()).toEqual([
+      "hooks/scripts/check.py",
+      "hooks/scripts/quoted.py",
+      "hooks/scripts/session-start.js",
+      "hooks/scripts/session-start.py",
+    ])
+    expect(relativePaths).not.toContain("hooks/scripts/setup.js")
+    expect([...new Set(targets.map((target) => target.raw))].sort()).toEqual([
+      "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-start.py",
+      "${PLUGIN_ROOT}/hooks/scripts/check.py",
+      "${PLUGIN_ROOT}/hooks/scripts/quoted.py",
+      "./hooks/scripts/session-start.js",
+    ])
+    await expect(findingIds("interpreter-command")).resolves.not.toContain("missing-hook-target")
+    await expect(findingsFor("interpreter-command")).resolves.not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ level: "error" })]),
     )
   })
 

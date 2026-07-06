@@ -99,6 +99,12 @@ Run a hook that escapes the plugin root with GitHub-format output:
 node dist/cli.js sniff --root test/fixtures/outside-root --format github
 # emits ::error ... hook-target-outside-root ... and exits 1
 ```
+Run SARIF output locally after building:
+```sh
+node dist/cli.js sniff --root test/fixtures/outside-root --format sarif
+# emits SARIF 2.1.0 JSON for code-scanning tools
+```
+
 
 Run the Action entrypoint locally after building:
 
@@ -136,6 +142,7 @@ node dist/action.js
 ### Hook and skill checks
 
 - Supported root template interpolation, including `${PLUGIN_ROOT}`, `${ZCODE_PLUGIN_ROOT}`, `${CLAUDE_PLUGIN_ROOT}`, `${CODEX_PLUGIN_ROOT}`, `${GJC_PLUGIN_ROOT}`, and `${OMO_PLUGIN_ROOT}`
+- Interpreter/wrapper hook commands such as `python3 "${PLUGIN_ROOT}/scripts/check.py"` and `/usr/bin/env node ./hooks/check.js`
 - Missing hook command targets
 - Missing generated `dist/` hook artifacts
 - Hook targets that escape the plugin root
@@ -155,6 +162,7 @@ node dist/action.js
 hookhound sniff --root .                 # human text report
 hookhound sniff --root . --json          # machine-readable ScanSummary
 hookhound sniff --root . --format github # GitHub annotations + markdown summary
+hookhound sniff --root . --format sarif  # SARIF 2.1.0 for code scanning tools
 ```
 
 The JSON shape is the stable integration surface for wrappers:
@@ -173,18 +181,19 @@ interface Finding {
 }
 ```
 
+`--format sarif` emits SARIF 2.1.0 with HookHound findings mapped to SARIF rules/results for adoption in code-scanning dashboards.
+
 ## Scope boundaries
 
-HookHound currently does **not** provide:
+HookHound currently provides local text output, machine-readable `ScanSummary` JSON, GitHub annotations/job summaries, and SARIF for code-scanning consumers. It does **not** provide:
 
-- SARIF output
 - hosted dashboards
 - telemetry or report uploads
 - broad marketplace schema coverage
 - a broad adapter framework
 - package-manager payload simulations beyond npm
 
-Those are intentionally deferred until real CI usage shows demand. The current goal is boring and useful: catch broken agent plugin releases in local and GitHub CI workflows.
+Those are intentionally deferred until real CI usage shows demand. The current goal is boring and useful: catch broken agent plugin releases in local and GitHub CI workflows without uploading project data.
 
 ## Dogfooding
 
@@ -199,7 +208,7 @@ The launch positioning and README conversion review lives in [`docs/marketing-re
 1. Harden GitHub Action usage against real plugin repositories.
 2. Add fixture-backed adapter seams only when repeated implementation pressure appears.
 3. Expand checks from observed failures, not imagined ecosystems.
-4. Consider SARIF after annotations and job summaries are stable.
+4. Expand SARIF/code-scanning polish from real adopter feedback.
 
 ## Development
 

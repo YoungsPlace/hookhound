@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import { scan } from "./core/scanner.js"
-import { renderGithubReport, renderTextReport } from "./core/report.js"
+import { renderGithubReport, renderSarifReport, renderTextReport } from "./core/report.js"
 
 interface CliArgs {
   root: string
   json: boolean
   strict: boolean
-  format: "text" | "github"
+  format: "text" | "github" | "sarif"
 }
 
 function parseArgs(argv: string[]): CliArgs {
@@ -20,7 +20,7 @@ function parseArgs(argv: string[]): CliArgs {
     } else if (arg === "--format") {
       const value = argv[index + 1]
       if (!value) throw new Error("--format requires a value")
-      if (value !== "text" && value !== "github") throw new Error(`Unsupported format: ${value}`)
+      if (value !== "text" && value !== "github" && value !== "sarif") throw new Error(`Unsupported format: ${value}`)
       args.format = value
       index += 1
     } else if (arg === "--root") {
@@ -29,7 +29,7 @@ function parseArgs(argv: string[]): CliArgs {
       args.root = value
       index += 1
     } else if (arg === "--help" || arg === "-h") {
-      console.log(`HookHound — sniff broken agent plugins before users do.\n\nUsage:\n  hookhound sniff [--root <path>] [--strict] [--json] [--format text|github]\n\nCommands:\n  sniff    Detect plugin surfaces and run release-gate checks\n`)
+      console.log(`HookHound — sniff broken agent plugins before users do.\n\nUsage:\n  hookhound sniff [--root <path>] [--strict] [--json] [--format text|github|sarif]\n\nCommands:\n  sniff    Detect plugin surfaces and run release-gate checks\n`)
       process.exit(0)
     } else if (arg === "sniff") {
       continue
@@ -47,6 +47,8 @@ async function main(): Promise<void> {
     console.log(JSON.stringify(summary, null, 2))
   } else if (args.format === "github") {
     console.log(renderGithubReport(summary))
+  } else if (args.format === "sarif") {
+    console.log(renderSarifReport(summary))
   } else {
     console.log(renderTextReport(summary))
   }

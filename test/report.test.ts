@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { renderGithubAnnotations, renderGithubJobSummary, renderGithubReport } from "../src/core/report.js"
+import { renderGithubAnnotations, renderGithubJobSummary, renderGithubReport, renderSarifReport } from "../src/core/report.js"
 import type { Finding, ScanSummary } from "../src/core/types.js"
 
 function summary(findings: Finding[]): ScanSummary {
@@ -118,5 +118,87 @@ describe("GitHub report renderer", () => {
     expect(annotationLines).toHaveLength(2)
     expect(annotationLines[0]).toContain("title=Manifest JSON is invalid")
     expect(annotationLines[1]).toContain("Evidence: Unexpected token at 3:4")
+  })
+})
+
+describe("SARIF report renderer", () => {
+  test("renders valid SARIF with unique rules and mapped finding results", () => {
+    const report = summary([
+      {
+        id: "missing-hook",
+        level: "error",
+        title: "Hook missing",
+        message: "Hook target does not exist.",
+        file: "hooks/hooks.json",
+        line: 12,
+        column: 3,
+        evidence: "node missing.js",
+        hint: "Build the hook target before publishing.",
+      },
+      {
+        id: "missing-hook",
+        level: "warning",
+        title: "Hook still missing",
+        message: "Duplicate rule id should not duplicate rules.",
+      },
+      {
+        id: "runtime-state",
+        level: "info",
+        title: "Runtime state detected",
+        message: "Runtime state is informational.",
+        file: ".gjc/",
+      },
+    ])
+
+    const sarif = JSON.parse(renderSarifReport(report))
+
+    expect(sarif.version).toBe("2.1.0")
+    expect(sarif.runs).toHaveLength(1)
+    expect(sarif.runs[0].tool.driver.name).toBe("HookHound")
+    expect(sarif.runs[0].tool.driver.rules).toEqual([
+      expect.objectContaining({
+        id: "missing-hook",
+        shortDescription: { text: "Hook missing" },
+      }),
+      expect.objectContaining({
+        id: "runtime-state",
+        shortDescription: { text: "Runtime state detected" },
+      }),
+    ])
+    expect(sarif.runs[0].results).toEqual([
+      expect.objectContaining({
+        ruleId: "missing-hook",
+        level: "error",
+        message: {
+          text: "Hook missing\nHook target does not exist.\nEvidence: node missing.js\nHint: Build the hook target before publishing.",
+        },
+        locations: [
+          {
+            physicalLocation: {
+              artifactLocation: { uri: "hooks/hooks.json" },
+              region: { startLine: 12, startColumn: 3 },
+            },
+          },
+        ],
+      }),
+      expect.objectContaining({
+        ruleId: "missing-hook",
+        level: "warning",
+        message: {
+          text: "Hook still missing\nDuplicate rule id should not duplicate rules.",
+        },
+      }),
+      expect.objectContaining({
+        ruleId: "runtime-state",
+        level: "note",
+        locations: [
+          {
+            physicalLocation: {
+              artifactLocation: { uri: ".gjc/" },
+            },
+          },
+        ],
+      }),
+    ])
   })
 })
