@@ -1,0 +1,9 @@
+{
+  "name": "clean-plugin-fixture",
+  "version": "1.0.0",
+  "license": "MIT",
+  "files": [
+    ".zcode-plugin",
+    "hooks"
+  ]
+}
