@@ -9,6 +9,11 @@
   <a href="README.zh-CN.md">简体中文</a> ·
   <a href="README.ko.md">한국어</a>
 </p>
+<p align="center">
+  <a href="https://www.npmjs.com/package/hookhound"><img src="https://img.shields.io/npm/v/hookhound?color=0ea5e9&label=npm" alt="npm version"></a>
+  <a href="https://github.com/YoungsPlace/hookhound/releases/tag/v0.1.1"><img src="https://img.shields.io/badge/release-v0.1.1-14b8a6" alt="release v0.1.1"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/npm/l/hookhound" alt="license"></a>
+</p>
 
 **让 agent 插件真的能顺利登机发布。** HookHound 会在用户踩坑之前，嗅出损坏的 hooks、缺失的 manifests、没有打包进 npm payload 的 `dist/` 文件，以及 release 包内容错误。
 

@@ -9,6 +9,11 @@
   <a href="README.zh-CN.md">简体中文</a> ·
   <a href="README.ko.md">한국어</a>
 </p>
+<p align="center">
+  <a href="https://www.npmjs.com/package/hookhound"><img src="https://img.shields.io/npm/v/hookhound?color=0ea5e9&label=npm" alt="npm version"></a>
+  <a href="https://github.com/YoungsPlace/hookhound/releases/tag/v0.1.1"><img src="https://img.shields.io/badge/release-v0.1.1-14b8a6" alt="release v0.1.1"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/npm/l/hookhound" alt="license"></a>
+</p>
 
 **제대로 탑승 가능한 agent plugin을 릴리즈하세요.** HookHound는 사용자가 깨진 플러그인을 만나기 전에 망가진 hook, 빠진 manifest, npm payload에 안 들어간 `dist/` 파일, 패키징 실수를 먼저 sniff합니다.
 
