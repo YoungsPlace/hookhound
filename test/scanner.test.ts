@@ -4,9 +4,14 @@ import { scan } from "../src/core/scanner.js"
 
 const FIXTURES = path.join(import.meta.dirname, "fixtures")
 
-async function findingIds(fixture: string): Promise<string[]> {
-  const summary = await scan({ root: path.join(FIXTURES, fixture) })
-  return summary.findings.map((finding) => finding.id)
+async function findingsFor(fixture: string, strict = false) {
+  const summary = await scan({ root: path.join(FIXTURES, fixture), strict })
+  return summary.findings
+}
+
+async function findingIds(fixture: string, strict = false): Promise<string[]> {
+  const findings = await findingsFor(fixture, strict)
+  return findings.map((finding) => finding.id)
 }
 
 describe("HookHound scanner", () => {
@@ -26,5 +31,43 @@ describe("HookHound scanner", () => {
 
   test("reports hook targets omitted from npm payload", async () => {
     await expect(findingIds("unshipped-target")).resolves.toContain("unshipped-hook-target")
+  })
+
+  test("rejects hook command targets that escape the plugin root", async () => {
+    const findings = await findingsFor("outside-root")
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "hook-target-outside-root",
+          level: "error",
+          evidence: expect.stringContaining("../shared/outside.js"),
+        }),
+      ]),
+    )
+  })
+
+  test("treats root-level dist targets as generated artifacts", async () => {
+    await expect(findingIds("root-dist-missing")).resolves.toContain("missing-generated-hook-artifact")
+  })
+
+  test("reports malformed and non-object manifests without crashing", async () => {
+    await expect(findingIds("malformed-manifest")).resolves.toContain("manifest-json-invalid")
+    await expect(findingIds("non-object-manifest")).resolves.toContain("manifest-not-object")
+  })
+
+  test("reports invalid marketplace plugin entries", async () => {
+    await expect(findingIds("invalid-marketplace")).resolves.toContain("marketplace-plugin-entry-invalid")
+  })
+
+  test("does not treat package.json alone as an agent plugin surface", async () => {
+    const findings = await findingsFor("package-only", true)
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "no-agent-plugin-surface",
+          level: "error",
+        }),
+      ]),
+    )
   })
 })

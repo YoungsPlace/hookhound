@@ -7,6 +7,14 @@ import type { Detection, Finding } from "../core/types.js"
 const HOOK_SURFACES = new Set(["generic-hooks", "codex-hooks"])
 const AGENT_REFERENCE = /agents\/([a-zA-Z0-9_.-]+\.md)/g
 
+function isOutsideRoot(relativePath: string): boolean {
+  return relativePath === "" || relativePath === ".." || relativePath.startsWith("../")
+}
+
+function isDistPath(relativePath: string): boolean {
+  return relativePath === "dist" || relativePath.startsWith("dist/") || relativePath.includes("/dist/")
+}
+
 interface HookCheckResult {
   findings: Finding[]
   targets: HookTarget[]
@@ -62,16 +70,29 @@ export async function checkHookTargets(root: string, detections: Detection[]): P
     }
 
     for (const target of manifestTargets) {
+      if (isOutsideRoot(target.relativePath)) {
+        findings.push({
+          id: "hook-target-outside-root",
+          level: "error",
+          title: "Hook command target escapes the plugin root",
+          file: detection.file,
+          evidence: `${target.hookPath}: ${target.raw}`,
+          message: `Resolved target ${target.relativePath} is outside the plugin root and cannot be shipped with the package.`,
+          hint: "Keep hook command targets inside the plugin payload root, or package the dependency as an explicit runtime binary/component.",
+        })
+        continue
+      }
+
       const exists = await pathExists(target.absolutePath)
       if (!exists) {
         findings.push({
-          id: target.relativePath.includes("/dist/") ? "missing-generated-hook-artifact" : "missing-hook-target",
+          id: isDistPath(target.relativePath) ? "missing-generated-hook-artifact" : "missing-hook-target",
           level: "error",
           title: "Hook command target is missing",
           file: detection.file,
           evidence: `${target.hookPath}: ${target.raw}`,
           message: `Resolved target ${target.relativePath} does not exist.`,
-          hint: target.relativePath.includes("/dist/")
+          hint: isDistPath(target.relativePath)
             ? "Build the generated artifact or make the hook point at a checked-in source script."
             : "Fix the hook path or include the referenced script in the plugin payload.",
         })

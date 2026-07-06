@@ -52,6 +52,10 @@ function isInsideRoot(relativePath: string): boolean {
   return relativePath !== "" && !relativePath.startsWith("..") && !path.isAbsolute(relativePath)
 }
 
+function isDistPath(relativePath: string): boolean {
+  return relativePath === "dist" || relativePath.startsWith("dist/") || relativePath.includes("/dist/")
+}
+
 export async function checkPayload(root: string, targets: HookTarget[]): Promise<Finding[]> {
   const findings: Finding[] = []
   const packagePath = path.join(root, "package.json")
@@ -90,7 +94,7 @@ export async function checkPayload(root: string, targets: HookTarget[]): Promise
     }
   }
 
-  const generatedTargets = targets.filter((target) => target.relativePath.includes("/dist/"))
+  const generatedTargets = targets.filter((target) => isDistPath(target.relativePath))
   if (generatedTargets.length > 0 && Array.isArray((parsedPackage.value as { files?: unknown }).files)) {
     const files = (parsedPackage.value as { files: unknown[] }).files.map(String)
     const mentionsDist = files.some((entry) => entry === "dist" || entry.includes("dist") || entry.includes("components"))

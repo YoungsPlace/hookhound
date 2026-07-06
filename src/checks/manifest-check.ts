@@ -73,7 +73,16 @@ export async function checkManifests(root: string, detections: Detection[]): Pro
         })
       } else {
         for (const [index, plugin] of plugins.entries()) {
-          if (!isRecord(plugin)) continue
+          if (!isRecord(plugin)) {
+            findings.push({
+              id: "marketplace-plugin-entry-invalid",
+              level: "error",
+              title: "Marketplace plugin entry must be an object",
+              file: detection.file,
+              message: `plugins[${index}] must be a JSON object with at least a source field.`,
+            })
+            continue
+          }
           const source = asString(plugin.source)
           if (!source) {
             findings.push({

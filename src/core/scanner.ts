@@ -59,12 +59,12 @@ export async function scan(options: ScanOptions): Promise<ScanSummary> {
 
   findings.push(...(await detectProjectShape(root)))
 
-  if (detections.length === 0) {
+  if (detections.filter((detection) => detection.kind !== "package").length === 0) {
     findings.push({
       id: "no-agent-plugin-surface",
       level: options.strict ? "error" : "warning",
       title: "No agent plugin surface detected",
-      message: "HookHound did not find Claude, ZCode, Codex, hook, skill, agent, or package manifests in this folder.",
+      message: "HookHound did not find Claude, ZCode, Codex, hook, skill, or agent plugin surfaces in this folder.",
       hint: "Run HookHound at the plugin repository root or pass --root <path>.",
     })
     return { root, detections, findings }
