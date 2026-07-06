@@ -55,6 +55,24 @@ describe("HookHound scanner", () => {
     await expect(findingIds("non-object-manifest")).resolves.toContain("manifest-not-object")
   })
 
+  test("reports missing required plugin manifest fields", async () => {
+    const findings = await findingsFor("missing-required-field")
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "plugin-manifest-missing-field",
+          level: "error",
+          message: expect.stringContaining("description"),
+        }),
+        expect.objectContaining({
+          id: "plugin-manifest-missing-field",
+          level: "error",
+          message: expect.stringContaining("license"),
+        }),
+      ]),
+    )
+  })
+
   test("reports invalid marketplace plugin entries", async () => {
     await expect(findingIds("invalid-marketplace")).resolves.toContain("marketplace-plugin-entry-invalid")
   })
