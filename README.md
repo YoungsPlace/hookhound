@@ -1,8 +1,18 @@
 # HookHound
 
-Broken agent plugins are embarrassing. **HookHound sniffs them before users do.**
+<p align="center">
+  <img src="https://raw.githubusercontent.com/YoungsPlace/hookhound/main/assets/hookie-hookhound-hero.webp" alt="HookHound mascot Hookie sniffing agent plugin baggage before release" width="100%">
+</p>
 
-HookHound is a CI-friendly release gate for Claude, ZCode, Codex, GJC, and OmO-style agent plugin repositories. It checks plugin manifests, hook commands, skill/agent references, and package payloads before a broken plugin reaches users.
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="README.zh-CN.md">简体中文</a> ·
+  <a href="README.ko.md">한국어</a>
+</p>
+
+**Ship agent plugins that actually board.** HookHound sniffs broken hooks, missing manifests, unshipped `dist/` files, and package payload mistakes before users discover them.
+
+HookHound is a CI-friendly release gate for Claude, ZCode, Codex, GJC, and OmO-style agent plugin repositories. It checks plugin manifests, hook commands, skill/agent references, and npm package payloads before a broken plugin reaches release.
 
 > Mascot: Hookie, the airport beagle for agent plugins. If a hook script is missing from the suitcase, Hookie barks before release day.
 
@@ -17,10 +27,10 @@ node dist/cli.js sniff --root .
 Use the published package without installing it globally:
 
 ```sh
-npm exec --package hookhound@0.1.0 -- hookhound sniff --root .
-npm exec --package hookhound@0.1.0 -- hookhound sniff --root . --strict
-npm exec --package hookhound@0.1.0 -- hookhound sniff --root . --json
-npm exec --package hookhound@0.1.0 -- hookhound sniff --root . --format github
+npm exec --package hookhound@0.1.1 -- hookhound sniff --root .
+npm exec --package hookhound@0.1.1 -- hookhound sniff --root . --strict
+npm exec --package hookhound@0.1.1 -- hookhound sniff --root . --json
+npm exec --package hookhound@0.1.1 -- hookhound sniff --root . --format github
 ```
 
 Or install the CLI globally:
@@ -47,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: YoungsPlace/hookhound@v0.1.0
+      - uses: YoungsPlace/hookhound@v0.1.1
         with:
           root: .
           strict: "true"
@@ -170,6 +180,14 @@ HookHound currently does **not** provide:
 - package-manager payload simulations beyond npm
 
 Those are intentionally deferred until real CI usage shows demand. The current goal is boring and useful: catch broken agent plugin releases in local and GitHub CI workflows.
+
+## Dogfooding
+
+HookHound has been tested against real external agent/tooling repositories. See [`docs/dogfood.md`](docs/dogfood.md) for true positives, false-positive notes, and the next scanner UX backlog.
+
+## Marketing review
+
+The launch positioning and README conversion review lives in [`docs/marketing-review.md`](docs/marketing-review.md). It records the applied copy, mascot, multilingual, and scope-boundary improvements.
 
 ## Roadmap
 
