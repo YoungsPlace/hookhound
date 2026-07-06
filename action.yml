@@ -1,0 +1,29 @@
+name: HookHound
+description: Sniff broken agent plugin hooks, manifests, skills, and package payloads.
+inputs:
+  root:
+    description: Plugin root to scan, resolved from the GitHub workspace when relative.
+    default: .
+    required: false
+  strict:
+    description: Fail when no agent plugin surface is detected.
+    default: "false"
+    required: false
+runs:
+  using: composite
+  steps:
+    - name: Install HookHound
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm ci
+    - name: Build HookHound
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm run build
+    - name: Run HookHound
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        INPUT_ROOT: ${{ inputs.root }}
+        INPUT_STRICT: ${{ inputs.strict }}
+      run: node dist/action.js

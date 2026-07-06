@@ -7,6 +7,7 @@
     "hookhound": "dist/cli.js"
   },
   "files": [
+    "action.yml",
     "dist",
     "LICENSE"
   ],
