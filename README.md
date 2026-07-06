@@ -14,13 +14,20 @@ npm run build
 node dist/cli.js sniff --root .
 ```
 
-For a package-installed CLI:
+Use the published package without installing it globally:
 
 ```sh
+npm exec --package hookhound@0.1.0 -- hookhound sniff --root .
+npm exec --package hookhound@0.1.0 -- hookhound sniff --root . --strict
+npm exec --package hookhound@0.1.0 -- hookhound sniff --root . --json
+npm exec --package hookhound@0.1.0 -- hookhound sniff --root . --format github
+```
+
+Or install the CLI globally:
+
+```sh
+npm install -g hookhound
 hookhound sniff --root .
-hookhound sniff --root . --strict
-hookhound sniff --root . --json
-hookhound sniff --root . --format github
 ```
 
 Exit code is non-zero when any `error` finding exists. Warnings and info findings are reported without failing the run.
@@ -40,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: YoungsPlace/hookhound@main
+      - uses: YoungsPlace/hookhound@v0.1.0
         with:
           root: .
           strict: "true"
