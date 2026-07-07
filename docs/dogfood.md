@@ -86,9 +86,9 @@ UX notes:
    - Inspects templated path-like arguments after interpreter or `/usr/bin/env` wrapper tokens.
    - Avoids resolving the full command string as a filesystem path.
 
-2. **Payload/source reference awareness**
-   - Add configuration or adapter hints for generated plugin payloads where `src/**/agents/*.md` are copied into root `agents/*.md` during packaging.
-   - Avoid hard errors when a reference is plausibly source-generated unless the package payload check can prove it is omitted.
+2. **Payload/source reference awareness** — configurable in local scans
+   - `hookhound.yml` can map generated payload paths such as `agents/` back to source directories such as `src/**/agents/`.
+   - The next step is proving those mappings against package payload output rather than treating them as user-declared trust.
 
 3. **Non-plugin UX copy**
    - Improve `no-agent-plugin-surface` messaging for adjacent AI projects.
@@ -101,4 +101,4 @@ UX notes:
 
 ## Summary
 
-HookHound is useful today on real plugin repos. Dogfooding exposed one important false-positive class — shell command strings with interpreters — and that gap is now covered on `main` by shell-aware command target parsing. The remaining highest-value UX gap is package/source reference awareness for generated agent payloads.
+HookHound is useful today on real plugin repos. Dogfooding exposed two important false-positive classes: shell command strings with interpreters, now fixed by shell-aware command target parsing, and generated payload references, now configurable with `hookhound.yml` generated path mappings. The remaining highest-value UX gap is first-run setup guidance for new repositories.

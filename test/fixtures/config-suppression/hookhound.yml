@@ -1,0 +1,5 @@
+ignore:
+  - id: missing-hook-target
+    file: hooks/hooks.json
+    evidence: "**missing.js"
+    reason: generated outside this fixture

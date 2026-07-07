@@ -147,6 +147,9 @@ node dist/action.js
 - `npm pack --dry-run --json --ignore-scripts` payload 모델링
 - 로컬에는 있지만 npm package payload에 들어가지 않는 hook target
 - `package.json.files`에서 빠질 가능성이 있는 generated hook artifact
+- 수용한 finding을 프로젝트별로 숨기는 config suppression
+- source tree에서 plugin payload 경로로 복사되는 generated path mapping
+
 
 ## 출력 모드
 
@@ -156,6 +159,32 @@ hookhound sniff --root . --json          # machine-readable ScanSummary
 hookhound sniff --root . --format github # GitHub annotations + markdown summary
 hookhound sniff --root . --format sarif  # code-scanning 도구용 SARIF 2.1.0
 ```
+
+## 프로젝트 설정
+
+HookHound는 scan root의 `hookhound.yml` 또는 `hookhound.yaml`을 자동으로 읽습니다. 기본 검사를 약하게 만들지 않으면서, 실제 repo 구조에 맞게 release gate를 조정할 수 있습니다.
+
+```yaml
+ignore:
+  - id: referenced-agent-file-missing
+    file: "skills/*/SKILL.md"
+    evidence: "agents/*.md"
+    reason: "agents are generated into the release payload"
+
+generated:
+  - from: src/ouroboros/agents
+    to: agents
+```
+
+`ignore`는 finding `id`와 선택적인 `file` / `evidence` glob-like pattern으로 finding을 suppress합니다. `generated`는 release pipeline이 source file을 payload path로 복사한다는 사실을 HookHound에 알려줍니다. 예를 들어 `agents/reviewer.md` 같은 Markdown reference는 `src/ouroboros/agents/reviewer.md`로 충족될 수 있습니다.
+
+명시적인 config 파일도 지정할 수 있습니다.
+
+```sh
+hookhound sniff --root . --config ./hookhound.yml
+```
+
+Config parser는 dependency 없이 동작하는 좁은 YAML subset입니다. top-level `ignore:` / `generated:` list와 scalar string 값만 지원합니다. 잘못된 config는 typoed suppression이나 mapping을 조용히 무시하지 않도록 `error` finding이 됩니다.
 
 ## 현재 범위
 

@@ -147,6 +147,9 @@ node dist/action.js
 - `npm pack --dry-run --json --ignore-scripts` payload 建模
 - 本地存在但没有进入 npm package payload 的 hook target
 - 可能被 `package.json.files` 排除的 generated hook artifact
+- 针对已接受 finding 的项目级 config suppression
+- 将 source tree 复制到 plugin payload 路径的 generated path mapping
+
 
 ## 输出模式
 
@@ -156,6 +159,32 @@ hookhound sniff --root . --json          # 机器可读 ScanSummary
 hookhound sniff --root . --format github # GitHub annotations + markdown summary
 hookhound sniff --root . --format sarif  # SARIF 2.1.0，供 code-scanning 工具使用
 ```
+
+## 项目配置
+
+HookHound 会自动读取 scan root 下的 `hookhound.yml` 或 `hookhound.yaml`。你可以在不削弱默认检查的前提下，让 release gate 适配真实仓库结构。
+
+```yaml
+ignore:
+  - id: referenced-agent-file-missing
+    file: "skills/*/SKILL.md"
+    evidence: "agents/*.md"
+    reason: "agents are generated into the release payload"
+
+generated:
+  - from: src/ouroboros/agents
+    to: agents
+```
+
+`ignore` 通过 finding `id` 以及可选的 `file` / `evidence` glob-like pattern suppress finding。`generated` 告诉 HookHound：release pipeline 会把 source file 复制到 payload path，因此 `agents/reviewer.md` 这样的 Markdown 引用可以由 `src/ouroboros/agents/reviewer.md` 满足。
+
+也可以显式指定 config 文件。
+
+```sh
+hookhound sniff --root . --config ./hookhound.yml
+```
+
+Config parser 不依赖第三方库，并且只支持一个很小的 YAML subset：top-level `ignore:` / `generated:` list，以及 scalar string 值。无效 config 会变成 `error` finding，避免 typoed suppression 或 mapping 被静默忽略。
 
 ## 当前边界
 

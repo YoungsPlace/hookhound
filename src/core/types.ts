@@ -12,6 +12,22 @@ export interface Finding {
   column?: number
 }
 
+export interface HookHoundSuppression {
+  id: string
+  file?: string
+  evidence?: string
+}
+
+export interface HookHoundGeneratedMapping {
+  from: string
+  to: string
+}
+
+export interface HookHoundConfig {
+  ignore?: HookHoundSuppression[]
+  generated?: HookHoundGeneratedMapping[]
+}
+
 export interface Detection {
   kind: string
   file: string
@@ -28,4 +44,5 @@ export interface ScanOptions {
   root: string
   strict?: boolean
   json?: boolean
+  configPath?: string
 }

@@ -99,6 +99,14 @@ describe("HookHound CLI JSON contract", () => {
     )
   })
 
+  test("explicit missing configs fail the release gate", async () => {
+    const result = await runCli("clean-plugin", ["--config", "missing.yml"])
+    const ids = result.json.findings?.map((finding) => finding.id) ?? []
+
+    expect(result.code).toBe(1)
+    expect(ids).toContain("hookhound-config-invalid")
+  })
+
   test("unsupported formats fail before scanning", async () => {
     const result = await execFileAsync(process.execPath, [CLI, "sniff", "--root", path.join(FIXTURES, "clean-plugin"), "--format", "xml"])
 

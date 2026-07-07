@@ -2,7 +2,7 @@ import { spawn } from "node:child_process"
 import path from "node:path"
 import { pathExists, readJson, readText, relativePosix } from "../core/files.js"
 import { extractHookTargets, hookObjectsWithoutTimeout, type HookTarget } from "../core/hook-targets.js"
-import type { Detection, Finding } from "../core/types.js"
+import type { Detection, Finding, HookHoundGeneratedMapping } from "../core/types.js"
 
 const HOOK_SURFACES = new Set(["generic-hooks", "codex-hooks"])
 const AGENT_REFERENCE = /agents\/([a-zA-Z0-9_.-]+\.md)/g
@@ -13,6 +13,23 @@ function isOutsideRoot(relativePath: string): boolean {
 
 function isDistPath(relativePath: string): boolean {
   return relativePath === "dist" || relativePath.startsWith("dist/") || relativePath.includes("/dist/")
+}
+
+function relativePathMatches(relativePath: string, prefix: string): string | null {
+  const normalizedPrefix = prefix.replace(/\/+$/, "")
+  if (relativePath === normalizedPrefix) return ""
+  if (relativePath.startsWith(`${normalizedPrefix}/`)) return relativePath.slice(normalizedPrefix.length + 1)
+  return null
+}
+
+async function generatedSourceExists(root: string, relativePath: string, mappings: HookHoundGeneratedMapping[]): Promise<boolean> {
+  for (const mapping of mappings) {
+    const rest = relativePathMatches(relativePath, mapping.to)
+    if (rest === null) continue
+    const source = path.join(root, mapping.from, rest)
+    if (await pathExists(source)) return true
+  }
+  return false
 }
 
 interface HookCheckResult {
@@ -45,7 +62,7 @@ async function nodeCheck(file: string): Promise<{ ok: boolean; output: string }>
   })
 }
 
-export async function checkHookTargets(root: string, detections: Detection[]): Promise<HookCheckResult> {
+export async function checkHookTargets(root: string, detections: Detection[], generatedMappings: HookHoundGeneratedMapping[] = []): Promise<HookCheckResult> {
   const findings: Finding[] = []
   const targets: HookTarget[] = []
 
@@ -123,7 +140,7 @@ export async function checkHookTargets(root: string, detections: Detection[]): P
     if (text === null) continue
     for (const match of text.matchAll(AGENT_REFERENCE)) {
       const expected = path.join(root, "agents", match[1])
-      if (!(await pathExists(expected))) {
+      if (!(await pathExists(expected)) && !(await generatedSourceExists(root, `agents/${match[1]}`, generatedMappings))) {
         findings.push({
           id: "referenced-agent-file-missing",
           level: "error",

@@ -7,6 +7,7 @@ interface CliArgs {
   json: boolean
   strict: boolean
   format: "text" | "github" | "sarif"
+  configPath?: string
 }
 
 function parseArgs(argv: string[]): CliArgs {
@@ -23,13 +24,18 @@ function parseArgs(argv: string[]): CliArgs {
       if (value !== "text" && value !== "github" && value !== "sarif") throw new Error(`Unsupported format: ${value}`)
       args.format = value
       index += 1
+    } else if (arg === "--config") {
+      const value = argv[index + 1]
+      if (!value) throw new Error("--config requires a path")
+      args.configPath = value
+      index += 1
     } else if (arg === "--root") {
       const value = argv[index + 1]
       if (!value) throw new Error("--root requires a path")
       args.root = value
       index += 1
     } else if (arg === "--help" || arg === "-h") {
-      console.log(`HookHound — sniff broken agent plugins before users do.\n\nUsage:\n  hookhound sniff [--root <path>] [--strict] [--json] [--format text|github|sarif]\n\nCommands:\n  sniff    Detect plugin surfaces and run release-gate checks\n`)
+      console.log(`HookHound — sniff broken agent plugins before users do.\n\nUsage:\n  hookhound sniff [--root <path>] [--config <path>] [--strict] [--json] [--format text|github|sarif]\n\nCommands:\n  sniff    Detect plugin surfaces and run release-gate checks\n`)
       process.exit(0)
     } else if (arg === "sniff") {
       continue

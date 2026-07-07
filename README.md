@@ -155,6 +155,9 @@ node dist/action.js
 - `npm pack --dry-run --json --ignore-scripts` payload modeling
 - Hook targets that exist locally but are omitted from the npm package payload
 - Generated hook artifacts that appear likely to be excluded by `package.json.files`
+- Configurable suppressions for known accepted findings
+- Generated path mappings for release pipelines that copy files from source trees into plugin payload paths
+
 
 ## Output modes
 
@@ -183,6 +186,32 @@ interface Finding {
 
 `--format sarif` emits SARIF 2.1.0 with HookHound findings mapped to SARIF rules/results for adoption in code-scanning dashboards.
 
+## Project configuration
+
+HookHound automatically reads `hookhound.yml` or `hookhound.yaml` from the scan root. Use it to adapt the release gate to real repository layouts without weakening default checks for every project:
+
+```yaml
+ignore:
+  - id: referenced-agent-file-missing
+    file: "skills/*/SKILL.md"
+    evidence: "agents/*.md"
+    reason: "agents are generated into the release payload"
+
+generated:
+  - from: src/ouroboros/agents
+    to: agents
+```
+
+`ignore` suppresses findings by `id` and optional `file` / `evidence` glob-like patterns. `generated` tells HookHound that a release pipeline copies source files into payload paths, so Markdown references such as `agents/reviewer.md` can be satisfied by `src/ouroboros/agents/reviewer.md`.
+
+You can also point at an explicit config file:
+
+```sh
+hookhound sniff --root . --config ./hookhound.yml
+```
+
+Config parsing is dependency-free and intentionally narrow: top-level `ignore:` / `generated:` lists with object items and scalar string values. Invalid config is an `error` finding because a release gate should not silently ignore a typoed suppression or mapping.
+
 ## Scope boundaries
 
 HookHound currently provides local text output, machine-readable `ScanSummary` JSON, GitHub annotations/job summaries, and SARIF for code-scanning consumers. It does **not** provide:
@@ -206,8 +235,8 @@ The launch positioning and README conversion review lives in [`docs/marketing-re
 ## Roadmap
 
 1. Harden GitHub Action usage against real plugin repositories.
-2. Add fixture-backed adapter seams only when repeated implementation pressure appears.
-3. Expand checks from observed failures, not imagined ecosystems.
+2. Expand config-driven adapter hints when repeated implementation pressure appears.
+3. Improve first-run adoption with `hookhound init` and `hookhound doctor`.
 4. Expand SARIF/code-scanning polish from real adopter feedback.
 
 ## Development

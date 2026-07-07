@@ -1,0 +1,3 @@
+ignore:
+  - id: missing-hook-target
+    evidnece: "**missing.js"

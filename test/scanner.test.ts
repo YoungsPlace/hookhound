@@ -116,4 +116,42 @@ describe("HookHound scanner", () => {
       ]),
     )
   })
+
+  test("applies hookhound.yml suppressions by id, file, and evidence", async () => {
+    await expect(findingIds("config-suppression")).resolves.not.toContain("missing-hook-target")
+  })
+
+  test("uses generated mappings to satisfy release payload agent references", async () => {
+    await expect(findingIds("generated-agent-map")).resolves.not.toContain("referenced-agent-file-missing")
+  })
+
+  test("reports invalid configs as error findings", async () => {
+    const findings = await findingsFor("invalid-config")
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "hookhound-config-invalid",
+          level: "error",
+          message: expect.stringContaining("evidnece"),
+        }),
+      ]),
+    )
+  })
+
+  test("rejects generated mappings that escape the scan root", async () => {
+    const findings = await findingsFor("generated-map-escape")
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "hookhound-config-invalid",
+          level: "error",
+          message: expect.stringContaining("must not contain '..'"),
+        }),
+      ]),
+    )
+  })
+
+  test("does not let generated mappings hide missing hook artifacts", async () => {
+    await expect(findingIds("generated-hook-map")).resolves.toContain("missing-hook-target")
+  })
 })

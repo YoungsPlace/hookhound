@@ -1,9 +1,10 @@
 import path from "node:path"
+import { loadConfig } from "./config.js"
 import { checkHookTargets } from "../checks/hook-target-check.js"
 import { checkManifests } from "../checks/manifest-check.js"
 import { checkPayload } from "../checks/payload-check.js"
 import { isDirectory, listFiles, pathExists, relativePosix } from "./files.js"
-import type { Detection, Finding, ScanOptions, ScanSummary } from "./types.js"
+import type { Detection, Finding, HookHoundSuppression, ScanOptions, ScanSummary } from "./types.js"
 
 const KNOWN_SURFACES: Array<{ kind: string; file: string; confidence: Detection["confidence"] }> = [
   { kind: "claude-plugin", file: ".claude-plugin/plugin.json", confidence: "high" },
@@ -52,11 +53,48 @@ async function detectProjectShape(root: string): Promise<Finding[]> {
   return findings
 }
 
+function applySuppressions(findings: Finding[], suppressions: HookHoundSuppression[] = []): Finding[] {
+  if (suppressions.length === 0) return findings
+  return findings.filter((finding) => !suppressions.some((suppression) => matchesSuppression(finding, suppression)))
+}
+
+function matchesSuppression(finding: Finding, suppression: HookHoundSuppression): boolean {
+  if (finding.id !== suppression.id) return false
+  if (suppression.file !== undefined && !matchesPattern(finding.file ?? "", suppression.file)) return false
+  if (suppression.evidence !== undefined && !matchesPattern(finding.evidence ?? "", suppression.evidence)) return false
+  return true
+}
+
+function matchesPattern(value: string, pattern: string): boolean {
+  const regex = new RegExp(`^${escapePattern(pattern)}$`)
+  return regex.test(value)
+}
+
+function escapePattern(pattern: string): string {
+  let output = ""
+  for (let index = 0; index < pattern.length; index += 1) {
+    const char = pattern[index]
+    if (char === "*") {
+      if (pattern[index + 1] === "*") {
+        output += ".*"
+        index += 1
+      } else {
+        output += "[^/]*"
+      }
+    } else {
+      output += char.replace(/[\\^$+?.()|{}\[\]]/g, "\\$&")
+    }
+  }
+  return output
+}
+
 export async function scan(options: ScanOptions): Promise<ScanSummary> {
   const root = path.resolve(options.root)
+  const configResult = await loadConfig(root, options.configPath)
   const detections = [...(await detectKnownSurfaces(root)), ...(await detectMarkdownSurfaces(root))]
   const findings: Finding[] = []
 
+  findings.push(...configResult.findings)
   findings.push(...(await detectProjectShape(root)))
 
   if (detections.filter((detection) => detection.kind !== "package").length === 0) {
@@ -67,13 +105,13 @@ export async function scan(options: ScanOptions): Promise<ScanSummary> {
       message: "HookHound did not find Claude, ZCode, Codex, hook, skill, or agent plugin surfaces in this folder.",
       hint: "Run HookHound at the plugin repository root or pass --root <path>.",
     })
-    return { root, detections, findings }
+    return { root, detections, findings: applySuppressions(findings, configResult.config.ignore) }
   }
 
   findings.push(...(await checkManifests(root, detections)))
-  const hookResult = await checkHookTargets(root, detections)
+  const hookResult = await checkHookTargets(root, detections, configResult.config.generated ?? [])
   findings.push(...hookResult.findings)
   findings.push(...(await checkPayload(root, hookResult.targets)))
 
-  return { root, detections, findings }
+  return { root, detections, findings: applySuppressions(findings, configResult.config.ignore) }
 }
