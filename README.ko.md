@@ -11,7 +11,7 @@
 </p>
 <p align="center">
   <a href="https://www.npmjs.com/package/hookhound"><img src="https://img.shields.io/npm/v/hookhound?color=0ea5e9&label=npm" alt="npm version"></a>
-  <a href="https://github.com/YoungsPlace/hookhound/releases/tag/v0.1.1"><img src="https://img.shields.io/badge/release-v0.1.1-14b8a6" alt="release v0.1.1"></a>
+  <a href="https://github.com/YoungsPlace/hookhound/releases/tag/v0.1.2"><img src="https://img.shields.io/badge/release-v0.1.2-14b8a6" alt="release v0.1.2"></a>
   <a href="LICENSE"><img src="https://img.shields.io/npm/l/hookhound" alt="license"></a>
 </p>
 
@@ -32,10 +32,10 @@ node dist/cli.js sniff --root .
 글로벌 설치 없이 공개 패키지 실행:
 
 ```sh
-npm exec --package hookhound@0.1.1 -- hookhound sniff --root .
-npm exec --package hookhound@0.1.1 -- hookhound sniff --root . --strict
-npm exec --package hookhound@0.1.1 -- hookhound sniff --root . --json
-npm exec --package hookhound@0.1.1 -- hookhound sniff --root . --format github
+npm exec --package hookhound@0.1.2 -- hookhound sniff --root .
+npm exec --package hookhound@0.1.2 -- hookhound sniff --root . --strict
+npm exec --package hookhound@0.1.2 -- hookhound sniff --root . --json
+npm exec --package hookhound@0.1.2 -- hookhound sniff --root . --format github
 ```
 
 글로벌 설치:
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: YoungsPlace/hookhound@v0.1.1
+      - uses: YoungsPlace/hookhound@v0.1.2
         with:
           root: .
           strict: "true"

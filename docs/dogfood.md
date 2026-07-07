@@ -1,7 +1,7 @@
 # HookHound Dogfooding Report
 
 Date: 2026-07-06
-HookHound build: local `main` after v0.1.0, before v0.1.1
+HookHound build: local `main` after v0.1.1, released in v0.1.2
 
 ## Scope
 
@@ -53,7 +53,7 @@ Findings:
 
 | Finding | Classification | Notes |
 | --- | --- | --- |
-| `missing-hook-target` for `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/*.py"` | Fixed on `main` after v0.1.1 / parser gap closed | HookHound now tokenizes interpreter/wrapper command strings and resolves the templated script argument instead of treating the whole shell command as a path. |
+| `missing-hook-target` for `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/*.py"` | Fixed in v0.1.2 / parser gap closed | HookHound now tokenizes interpreter/wrapper command strings and resolves the templated script argument instead of treating the whole shell command as a path. |
 | `referenced-agent-file-missing` for `agents/*.md` references | Likely UX gap / packaging gap | Matching files exist under `src/ouroboros/agents/*.md`, not root `agents/*.md`. HookHound cannot yet distinguish source-tree references that are copied into plugin payloads by a release process from genuinely missing packaged files. |
 
 UX notes:
@@ -81,7 +81,7 @@ UX notes:
 
 ## Follow-up backlog
 
-1. **Shell command target parsing** — fixed on `main` after v0.1.1
+1. **Shell command target parsing** — fixed in v0.1.2
    - Parses command strings like `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/session-start.py"`.
    - Inspects templated path-like arguments after interpreter or `/usr/bin/env` wrapper tokens.
    - Avoids resolving the full command string as a filesystem path.
