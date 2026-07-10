@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readFile } from "node:fs/promises"
 import { scan } from "./core/scanner.js"
 import { renderGithubReport, renderSarifReport, renderTextReport } from "./core/report.js"
 
@@ -8,10 +9,11 @@ interface CliArgs {
   strict: boolean
   format: "text" | "github" | "sarif"
   configPath?: string
+  version: boolean
 }
 
 function parseArgs(argv: string[]): CliArgs {
-  const args: CliArgs = { root: process.cwd(), json: false, strict: false, format: "text" }
+  const args: CliArgs = { root: process.cwd(), json: false, strict: false, format: "text", version: false }
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index]
     if (arg === "--json") {
@@ -34,8 +36,10 @@ function parseArgs(argv: string[]): CliArgs {
       if (!value) throw new Error("--root requires a path")
       args.root = value
       index += 1
+    } else if (arg === "--version" || arg === "-v") {
+      args.version = true
     } else if (arg === "--help" || arg === "-h") {
-      console.log(`HookHound — sniff broken agent plugins before users do.\n\nUsage:\n  hookhound sniff [--root <path>] [--config <path>] [--strict] [--json] [--format text|github|sarif]\n\nCommands:\n  sniff    Detect plugin surfaces and run release-gate checks\n`)
+      console.log(`HookHound — sniff broken agent plugins before users do.\n\nUsage:\n  hookhound sniff [--root <path>] [--config <path>] [--strict] [--json] [--format text|github|sarif]\n  hookhound --version\n\nCommands:\n  sniff    Detect plugin surfaces and run release-gate checks\n`)
       process.exit(0)
     } else if (arg === "sniff") {
       continue
@@ -45,9 +49,21 @@ function parseArgs(argv: string[]): CliArgs {
   }
   return args
 }
+async function readPackageVersion(): Promise<string> {
+  const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8")) as { version?: unknown }
+  if (typeof packageJson.version !== "string" || packageJson.version.length === 0) {
+    throw new Error("package.json is missing a version")
+  }
+  return packageJson.version
+}
+
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2))
+  if (args.version) {
+    console.log(await readPackageVersion())
+    return
+  }
   const summary = await scan(args)
   if (args.json) {
     console.log(JSON.stringify(summary, null, 2))

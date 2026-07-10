@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process"
+import { readFile } from "node:fs/promises"
 import path from "node:path"
 import { beforeAll, describe, expect, test } from "vitest"
 
@@ -40,6 +41,14 @@ beforeAll(async () => {
 })
 
 describe("HookHound CLI JSON contract", () => {
+  test("version flag prints package version without scanning", async () => {
+    const pkg = JSON.parse(await readFile(path.join(ROOT, "package.json"), "utf8")) as { version: string }
+    const result = await execFileAsync(process.execPath, [CLI, "--version"])
+
+    expect(result.code).toBe(0)
+    expect(result.stderr).toBe("")
+    expect(result.stdout).toBe(`${pkg.version}\n`)
+  })
   test("clean fixtures exit zero with parseable JSON and no errors", async () => {
     const result = await runCli("clean-plugin")
     expect(result.code).toBe(0)
